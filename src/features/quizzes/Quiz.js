@@ -1,10 +1,9 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Navigate } from "react-router-dom";
 import ROUTES from "../../app/routes";
 import { selectQuizzes } from './quizzesSlice';
 import { useSelector } from 'react-redux';
 import Card from "../cards/Card";
-import { Link, Navigate } from "react-router-dom";
 
 export default function Quiz() {
   const { quizId } = useParams();
@@ -16,16 +15,13 @@ export default function Quiz() {
   }
 
   return (
-    <section>
+    <section className="center">
       <h1>{quiz.name}</h1>
       <ul className="cards-list">
-        {quiz.cardIds.map((id) => (
-          <Card key={id} id={id} />
+        {quiz.cardIds.map((cardId) => (
+          <Card key={cardId} id={cardId} />
         ))}
       </ul>
-      <Link to={ROUTES.newQuizRoute()} className="button center">
-        Create a New Quiz
-      </Link>
     </section>
   );
 }

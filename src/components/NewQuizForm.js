@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import ROUTES from "../app/routes";
-import { ALL_ICONS } from "../data/icons";
-import { addTopic, addQuizId } from '../features/topics/topicsSlice';
+import { addQuizId } from '../features/topics/topicsSlice';
 import { addQuiz } from '../features/quizzes/quizzesSlice';
+import { addCard } from '../features/cards/cardsSlice';
 import { selectTopics } from '../features/topics/topicsSlice';
 
 export default function NewQuizForm() {
@@ -13,8 +13,8 @@ export default function NewQuizForm() {
   const navigate = useNavigate();
   const topics = useSelector(selectTopics);
   const [name, setName] = useState("");
-  const [icon, setIcon] = useState("");
   const [topicId, setTopicId] = useState("");
+  const [cards, setCards] = useState([{ front: "", back: "" }]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,14 +23,46 @@ export default function NewQuizForm() {
     }
 
     const quizId = uuidv4();
+    const cardIds = [];
+
+    // Create cards and collect their IDs
+    cards.forEach(card => {
+      if (card.front && card.back) {
+        const cardId = uuidv4();
+        dispatch(addCard({
+          id: cardId,
+          front: card.front,
+          back: card.back
+        }));
+        cardIds.push(cardId);
+      }
+    });
+
+    // Create the quiz with the card IDs
     dispatch(addQuiz({
       id: quizId,
       name,
       topicId,
-      cardIds: []
+      cardIds
     }));
     dispatch(addQuizId({ topicId, quizId }));
     navigate(ROUTES.quizzesRoute());
+  };
+
+  const addCardInputs = (e) => {
+    e.preventDefault();
+    setCards(cards.concat({ front: "", back: "" }));
+  };
+
+  const removeCard = (e, index) => {
+    e.preventDefault();
+    setCards(cards.filter((card, i) => index !== i));
+  };
+
+  const updateCardState = (index, side, value) => {
+    const newCards = cards.slice();
+    newCards[index][side] = value;
+    setCards(newCards);
   };
 
   return (
@@ -60,7 +92,34 @@ export default function NewQuizForm() {
             ))}
           </select>
         </div>
-        <button className="center" type="submit">Add Quiz</button>
+
+        {cards.map((card, index) => (
+          <div key={index} className="card-front-back">
+            <input
+              id={`card-front-${index}`}
+              value={cards[index].front}
+              onChange={(e) => updateCardState(index, "front", e.currentTarget.value)}
+              placeholder="Front"
+            />
+            <input
+              id={`card-back-${index}`}
+              value={cards[index].back}
+              onChange={(e) => updateCardState(index, "back", e.currentTarget.value)}
+              placeholder="Back"
+            />
+            <button
+              onClick={(e) => removeCard(e, index)}
+              className="remove-card-button"
+            >
+              Remove Card
+            </button>
+          </div>
+        ))}
+
+        <div className="actions-container">
+          <button onClick={addCardInputs}>Add a Card</button>
+          <button type="submit">Create Quiz</button>
+        </div>
       </form>
     </section>
   );
