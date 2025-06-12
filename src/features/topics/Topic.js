@@ -1,35 +1,33 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import { Link, useParams, Navigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import ROUTES from "../../app/routes";
-// import selectors
+import { selectTopics } from './topicsSlice';
+import { useSelector } from 'react-redux';
+import { Link } from "react-router-dom";
 
 export default function Topic() {
-  const topics = {};  // replace with selector
-  const quizzes = {}; // replace with selector
   const { topicId } = useParams();
+  const topics = useSelector(selectTopics);
   const topic = topics[topicId];
 
-  if(!topic) {
-    return <Navigate to={ROUTES.topicsRoute()} replace/>
+  if (!topic) {
+    return <div>Topic not found</div>;
   }
-  
-  const quizzesForTopic = topic.quizIds.map((quizId) => quizzes[quizId]);
 
   return (
-    <section>
-      <img src={topic.icon} alt="" className="topic-icon" />
+    <section className="center">
       <h1>{topic.name}</h1>
       <ul className="quizzes-list">
-        {quizzesForTopic.map((quiz) => (
-          <li className="quiz" key={quiz.id}>
-            <Link to={ROUTES.quizRoute(quiz.id)}>{quiz.name}</Link>
+        {topic.quizIds.map((quizId) => (
+          <li key={quizId} className="quiz">
+            <Link to={ROUTES.quizRoute(quizId)} className="quiz-link">
+              <div className="quiz-container">
+                <h2>Quiz ID: {quizId}</h2>
+              </div>
+            </Link>
           </li>
         ))}
       </ul>
-      <Link to="/quizzes/new" className="button center">
-        Create a New Quiz
-      </Link>
     </section>
   );
 }
